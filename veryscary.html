@@ -32,6 +32,41 @@
       pointer-events: none;
       border-radius: 6px;
     }
+
+    /* Central flashing cropped GIF container (permanent, non-closable)
+       - This container crops the source gif so only the "flashing" region shows.
+       - Adjust --flash-width / --flash-height / --img-scale / --img-offset-x / --img-offset-y if you need to change the crop.
+    */
+    .flash-overlay {
+      position: fixed;
+      z-index: 2147483647; /* above the moving windows */
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: var(--flash-width, 420px);
+      height: var(--flash-height, 320px);
+      overflow: hidden;
+      border-radius: 8px;
+      pointer-events: none; /* can't be interacted with */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+    .flash-overlay img {
+      /* Make the source gif larger and offset it so only the flashing part is visible inside the container.
+         Tweak the scale and offsets if the flashing region is not centered. */
+      transform: scale(var(--img-scale, 1.6));
+      transform-origin: center top;
+      /* offsets in px — increase/decrease to shift the gif within the crop box */
+      margin-left: var(--img-offset-x, -120px);
+      margin-top: var(--img-offset-y, -40px);
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      display: block;
+    }
+
     .scare-close {
       position: absolute;
       top: 6px;
@@ -60,18 +95,19 @@
 
 <script>
 /* Very Scary bouncing windows with stacked audio
-   - Windows bounce like the DVD logo
-   - Each close increments a global counter; on the nth close spawn n*2 windows
-   - Each window plays assets_idiot (1).mp3 on loop at full volume; sounds stack
-   - Close button stays inside the moving window
+   - Shows a central cropped flashing GIF (non-closable) immediately and plays its audio on loop.
+   - After 8 seconds the first bouncing window is spawned. The central flashing element remains.
+   - The cropped region is achieved via CSS cropping/offsets; tweak the CSS variables at the top
+     of the file if the flashing region needs to be adjusted.
 */
 (function () {
   const CONFIG = {
     gifPath: 'gif-with-window.gif', // expects this file at the repo root next to this HTML
     audioPath: 'assets_idiot (1).mp3', // file name in repo root
-    initialCount: 1,
-    maxSpeed: 438, // pixels per second max (increased 35%)
-    minSpeed: 146, // pixels per second min (increased 35%)
+    initialCount: 0, // don't spawn bouncing windows immediately
+    delayedFirstSpawnDelayMs: 8000, // spawn first bouncing window after 8 seconds
+    maxSpeed: 324, // pixels per second max (previously increased 35%)
+    minSpeed: 108, // pixels per second min (previously increased 35%)
   };
 
   let closeEventCount = 0; // global number of close events (1 -> spawn 2, 2 -> spawn 4, ...)
@@ -79,6 +115,44 @@
 
   function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
   function randomSign() { return Math.random() < 0.5 ? -1 : 1; }
+
+  // Create the permanent central flashing cropped GIF
+  function createFlash() {
+    const el = document.createElement('div');
+    el.className = 'flash-overlay';
+
+    const img = document.createElement('img');
+    img.src = CONFIG.gifPath;
+    img.alt = 'flashing';
+
+    // Non-interactive audio that loops permanently for this flashing element
+    const audio = new Audio(CONFIG.audioPath);
+    audio.loop = true;
+    audio.volume = 1.0;
+    // Try to play; browsers may block autoplay until the user interacts — resume on next interaction
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        const resume = () => {
+          audio.play().catch(() => {});
+          window.removeEventListener('pointerdown', resume);
+          window.removeEventListener('keydown', resume);
+        };
+        window.addEventListener('pointerdown', resume, { once: true });
+        window.addEventListener('keydown', resume, { once: true });
+      });
+    }
+
+    // keep reference so we can stop it on unload
+    el._audio = audio;
+
+    el.appendChild(img);
+    document.body.appendChild(el);
+
+    // do not add to overlays set — this is a permanent non-bouncing element
+
+    return el;
+  }
 
   // Create one overlay window at (atX, atY) if provided (page coordinates)
   function createScare(atX, atY) {
@@ -114,7 +188,7 @@
     btn.innerText = '×';
     btn.title = 'Close';
 
-    // Audio for this window
+    // Audio for this window (separate instance so sounds stack)
     const audio = new Audio(CONFIG.audioPath);
     audio.loop = true;
     audio.volume = 1.0; // max volume
@@ -122,7 +196,6 @@
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(() => {
-        // Autoplay blocked; audio will start when user interacts with the page (we add a one-time interaction listener)
         const resume = () => {
           audio.play().catch(() => {});
           window.removeEventListener('pointerdown', resume);
@@ -241,8 +314,17 @@
 
   // Initialize
   window.addEventListener('DOMContentLoaded', () => {
-    for (let i = 0; i < CONFIG.initialCount; i++) createScare();
+    // create the permanent flashing element immediately
+    createFlash();
+
+    // start animation loop
     requestAnimationFrame(tick);
+
+    // spawn initial bouncing windows after the configured delay
+    setTimeout(() => {
+      // spawn one bouncing window to start the bouncing behavior
+      createScare();
+    }, CONFIG.delayedFirstSpawnDelayMs);
   });
 })();
 </script>
