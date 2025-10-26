@@ -17,6 +17,7 @@
       opacity: 0;
       transition: transform 220ms ease, opacity 220ms ease;
       pointer-events: auto;
+      will-change: left, top, transform;
     }
     .scare-overlay.visible {
       opacity: 1;
@@ -30,7 +31,6 @@
       -webkit-user-drag: none;
       pointer-events: none;
       border-radius: 6px;
-      display: block;
     }
     .scare-close {
       position: absolute;
@@ -47,30 +47,41 @@
       cursor: pointer;
       z-index: 2;
       padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
     }
     .scare-close:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
-    /* Make sure body can't be selected while spawns appear */
     body { margin: 0; }
   </style>
 </head>
 <body>
 
 <script>
-/* Very Scary infinite spawn - created by GitHub Copilot Chat Assistant per user request */
+/* Very Scary bouncing windows with stacked audio
+   - Windows bounce like the DVD logo
+   - Each close increments a global counter; on the nth close spawn n*2 windows
+   - Each window plays assets_idiot (1).mp3 on loop at full volume; sounds stack
+   - Close button stays inside the moving window
+*/
 (function () {
   const CONFIG = {
     gifPath: 'gif-with-window.gif', // expects this file at the repo root next to this HTML
+    audioPath: 'assets_idiot (1).mp3', // file name in repo root
     initialCount: 1,
-    spawnOnClose: 2,
-    maxInstances: Infinity // infinite spawning as requested
+    maxSpeed: 240, // pixels per second max
+    minSpeed: 80, // pixels per second min
   };
 
+  let closeEventCount = 0; // global number of close events (1 -> spawn 2, 2 -> spawn 4, ...)
+  const overlays = new Set();
+
   function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function randomSign() { return Math.random() < 0.5 ? -1 : 1; }
 
+  // Create one overlay window at (atX, atY) if provided (page coordinates)
   function createScare(atX, atY) {
-    const current = document.querySelectorAll('.scare-overlay').length;
-    if (current >= CONFIG.maxInstances) return null; // kept for completeness
-
     const el = document.createElement('div');
     el.className = 'scare-overlay';
 
@@ -78,39 +89,60 @@
     const width = 320 + randomInt(0, 160); // 320..480
     el.style.width = width + 'px';
 
-    // Position - random if not specified
+    // Position
     const x = (typeof atX === 'number') ? atX : Math.max(10, randomInt(10, Math.max(10, window.innerWidth - width - 10)));
     const y = (typeof atY === 'number') ? atY : Math.max(10, randomInt(10, Math.max(10, window.innerHeight - 240)));
     el.style.left = x + 'px';
     el.style.top = y + 'px';
 
-    // Image
+    // Random velocity
+    const speed = CONFIG.minSpeed + Math.random() * (CONFIG.maxSpeed - CONFIG.minSpeed); // px/sec
+    const angle = Math.random() * Math.PI * 2;
+    el._vx = Math.cos(angle) * speed; // pixels per second
+    el._vy = Math.sin(angle) * speed;
+
+    // Image element
     const img = document.createElement('img');
     img.src = CONFIG.gifPath;
     img.alt = 'scary';
     img.className = 'scare-img';
     img.draggable = false;
 
-    // Close button
+    // Close button (inside the overlay so it moves with it)
     const btn = document.createElement('button');
     btn.className = 'scare-close';
     btn.innerText = '×';
     btn.title = 'Close';
 
+    // Audio for this window
+    const audio = new Audio(CONFIG.audioPath);
+    audio.loop = true;
+    audio.volume = 1.0; // max volume
+    // Try to play; browsers may block autoplay until user interacts
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        // Autoplay blocked; audio will start when user interacts with the page (we add a one-time interaction listener)
+        const resume = () => {
+          audio.play().catch(() => {});
+          window.removeEventListener('pointerdown', resume);
+          window.removeEventListener('keydown', resume);
+        };
+        window.addEventListener('pointerdown', resume, { once: true });
+        window.addEventListener('keydown', resume, { once: true });
+      });
+    }
+
+    // Store audio on element for cleanup
+    el._audio = audio;
+
     btn.addEventListener('click', function (ev) {
       ev.stopPropagation();
-      // remove this overlay
-      if (el && el.parentNode) el.parentNode.removeChild(el);
-      // spawn replacements immediately (infinite behavior)
-      for (let i = 0; i < CONFIG.spawnOnClose; i++) {
-        // small randomized delay to stagger creation
-        setTimeout(() => { createScare(); }, 30 * i + randomInt(0,120));
-      }
+      closeScare(el);
     });
 
-    // If clicked anywhere else on the overlay, also close and spawn (optional)
+    // Clicking elsewhere on the overlay also closes it
     el.addEventListener('click', function (ev) {
-      // don't trigger when clicking the button
       if (ev.target === btn) return;
       btn.click();
     });
@@ -119,14 +151,98 @@
     el.appendChild(img);
     document.body.appendChild(el);
 
+    // add to overlays set so the animation loop knows about it
+    overlays.add(el);
+
     // Slight pop-in animation
     requestAnimationFrame(() => el.classList.add('visible'));
 
     return el;
   }
 
+  function closeScare(el) {
+    // stop and remove audio
+    try {
+      if (el._audio) {
+        el._audio.pause();
+        el._audio.src = '';
+        el._audio = null;
+      }
+    } catch (e) {}
+
+    // remove from DOM and overlays set
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    overlays.delete(el);
+
+    // increment global close counter and spawn new windows in multiples of 2
+    closeEventCount += 1;
+    const toSpawn = closeEventCount * 2; // 1->2, 2->4, 3->6, ...
+
+    for (let i = 0; i < toSpawn; i++) {
+      // spawn near the original location if possible, otherwise random
+      const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+      const spawnX = rect ? (rect.left + rect.width / 2 + randomInt(-60, 60)) : undefined;
+      const spawnY = rect ? (rect.top + rect.height / 2 + randomInt(-60, 60)) : undefined;
+      // stagger creation slightly so audio stacks more naturally
+      setTimeout(() => createScare(spawnX, spawnY), 20 * i + randomInt(0, 160));
+    }
+  }
+
+  // Animation loop: move overlays by their velocity and bounce off viewport edges
+  let lastTs = performance.now();
+  function tick(ts) {
+    const dt = Math.min(0.05, (ts - lastTs) / 1000); // clamp dt to avoid huge jumps (seconds)
+    lastTs = ts;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    overlays.forEach(el => {
+      // parse current position
+      const left = parseFloat(el.style.left) || 0;
+      const top = parseFloat(el.style.top) || 0;
+      const width = el.offsetWidth || 320;
+      const height = el.offsetHeight || 200;
+
+      let nx = left + el._vx * dt;
+      let ny = top + el._vy * dt;
+
+      // bounce on left/right
+      if (nx <= 0) {
+        nx = 0;
+        el._vx = Math.abs(el._vx);
+      } else if (nx + width >= vw) {
+        nx = Math.max(0, vw - width);
+        el._vx = -Math.abs(el._vx);
+      }
+
+      // bounce on top/bottom
+      if (ny <= 0) {
+        ny = 0;
+        el._vy = Math.abs(el._vy);
+      } else if (ny + height >= vh) {
+        ny = Math.max(0, vh - height);
+        el._vy = -Math.abs(el._vy);
+      }
+
+      el.style.left = nx + 'px';
+      el.style.top = ny + 'px';
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  // Clean up overlays on page unload
+  window.addEventListener('beforeunload', () => {
+    overlays.forEach(el => {
+      try { if (el._audio) { el._audio.pause(); el._audio.src = ''; } } catch (e) {}
+    });
+  });
+
+  // Initialize
   window.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < CONFIG.initialCount; i++) createScare();
+    requestAnimationFrame(tick);
   });
 })();
 </script>
