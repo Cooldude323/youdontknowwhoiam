@@ -35,36 +35,48 @@
 
     /* Central flashing cropped GIF container (permanent, non-closable)
        - This container crops the source gif so only the "flashing" region shows.
-       - Adjust --flash-width / --flash-height / --img-scale / --img-offset-x / --img-offset-y if you need to change the crop.
+       - Adjust --img-scale / --img-offset-x / --img-offset-y if you need to change the crop.
+       - I've made the flashing container fill the entire viewport so the non-moving (central)
+         element appears much larger and covers the page. The gif itself is scaled and offset
+         so only the desired flashing portion is visible; tweak the offsets/scale below if you
+         still see unwanted blue edges.
     */
     .flash-overlay {
       position: fixed;
       z-index: 2147483647; /* above the moving windows */
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: var(--flash-width, 420px);
-      height: var(--flash-height, 320px);
+      /* make it fill the whole viewport so the central non-moving element appears large */
+      left: 0;
+      top: 0;
+      transform: none;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
-      border-radius: 8px;
+      border-radius: 0; /* fill corners */
       pointer-events: none; /* can't be interacted with */
       display: flex;
       align-items: center;
       justify-content: center;
       background: transparent;
+
+      /* sensible defaults — tweak these variables to fine tune the crop/zoom */
+      --img-scale: 2.2;       /* increase to zoom in further and crop edges */
+      --img-offset-x: -300px; /* move left/right to hide unwanted side */
+      --img-offset-y: -140px; /* move up/down to hide unwanted top */
     }
     .flash-overlay img {
-      /* Make the source gif larger and offset it so only the flashing part is visible inside the container.
-         Tweak the scale and offsets if the flashing region is not centered. */
-      transform: scale(var(--img-scale, 1.6));
+      /* Scale the source gif and offset it, so only the desired region shows inside the container.
+         Increase --img-scale to crop even more; adjust offsets to hide the blue top/side. */
+      transform: scale(var(--img-scale));
       transform-origin: center top;
-      /* offsets in px — increase/decrease to shift the gif within the crop box */
-      margin-left: var(--img-offset-x, -120px);
-      margin-top: var(--img-offset-y, -40px);
+      margin-left: var(--img-offset-x);
+      margin-top: var(--img-offset-y);
       user-select: none;
       -webkit-user-drag: none;
       pointer-events: none;
       display: block;
+      /* ensure the image is large enough to cover the viewport after scaling */
+      min-width: 120%;
+      min-height: 120%;
     }
 
     .scare-close {
