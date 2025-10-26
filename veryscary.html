@@ -3,195 +3,236 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Harmless Prank — YOU ARE AN IDIOT</title>
+<title>Surprise!</title>
 <style>
-  /* loud, silly, harmless styling */
-  :root{
-    --bg1:#ff0066;
-    --bg2:#00e6ff;
-    --accent:#ffea00;
+  :root {
+    --flash-duration: 0.12s;
+    --bg1: #000;
+    --bg2: #fff;
+    --text-color: #ff0000;
+    --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#000;}
-  body{
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-    background:radial-gradient(circle at 20% 20%, rgba(255,0,102,0.12), transparent 8%),
-               radial-gradient(circle at 80% 80%, rgba(0,230,255,0.08), transparent 18%),
-               linear-gradient(135deg,var(--bg1),var(--bg2));
-    animation: hue 3s linear infinite;
-  }
-  @keyframes hue { 0%{filter:hue-rotate(0deg)} 50%{filter:hue-rotate(90deg)} 100%{filter:hue-rotate(180deg)} }
-
-  .stage{
-    width:95vw; max-width:1100px; height:80vh; border-radius:16px;
-    background:rgba(0,0,0,0.32); display:flex;flex-direction:column;align-items:center;justify-content:center;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6); position:relative; overflow:hidden;
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg1);
+    font-family:var(--font-family);
   }
 
-  /* Big flashing text */
-  .main-msg{
-    font-family: "Impact", "Arial Black", system-ui, sans-serif;
-    color:#fff;
-    font-size:8vw;
-    line-height:0.92;
+  /* flashing animation (toggle black/white) */
+  @keyframes flash {
+    0% { background: var(--bg1); color: var(--bg2); }
+    50% { background: var(--bg2); color: var(--bg1); }
+    100% { background: var(--bg1); color: var(--bg2); }
+  }
+
+  /* when flash-enabled, animate rapidly */
+  .flash {
+    animation: flash calc(var(--flash-duration) * 2) steps(1) infinite;
+  }
+
+  .center {
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+  }
+
+  .message {
+    font-size: clamp(28px, 8vw, 120px);
+    font-weight:900;
+    letter-spacing:2px;
     text-transform:uppercase;
-    letter-spacing:1px;
-    transform: rotate(-2deg);
-    text-shadow:
-      0 6px 20px rgba(0,0,0,.7),
-      0 0 24px rgba(255,0,102,.18);
-    animation: shake 1.35s ease-in-out infinite, colorPulse 1.6s linear infinite;
-    padding: 8px 12px;
-  }
-  @keyframes shake {
-    0%{transform:translateX(-6px) rotate(-2deg)}
-    25%{transform:translateX(6px) rotate(2deg)}
-    50%{transform:translateX(-4px) rotate(-1deg)}
-    75%{transform:translateX(4px) rotate(1deg)}
-    100%{transform:translateX(-6px) rotate(-2deg)}
-  }
-  @keyframes colorPulse {
-    0%{color: #fff; text-shadow: 0 6px 40px rgba(255,0,102,.15)}
-    50%{color: var(--accent); text-shadow: 0 12px 80px rgba(255,234,0,.25)}
-    100%{color: #fff; text-shadow: 0 6px 40px rgba(255,0,102,.15)}
+    text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+    color: var(--bg2);
   }
 
-  /* small subtitle + badge */
-  .sub{
-    margin-top:18px;color:rgba(255,255,255,.9);font-weight:800;
-    background:rgba(0,0,0,0.4); padding:10px 14px;border-radius:999px; letter-spacing:.6px;
+  /* optional red accent flash behind text, subtle */
+  .accent {
+    display:inline-block;
+    padding:12px 24px;
+    background:rgba(255,0,0,0.06);
+    border-radius:6px;
   }
 
-  /* flashing background squares for chaos */
-  .decor {
-    position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen;
-  }
-  .decor span{
-    position:absolute; width:220px;height:220px;border-radius:12px;
-    opacity:.06; animation: floaty 6s ease-in-out infinite;
-    filter:blur(8px);
-  }
-  .decor span.a{ background: #ff0066; left:10%; top:5%; animation-delay:0s; }
-  .decor span.b{ background:#00e6ff; right:8%; bottom:8%; animation-delay:1.6s; transform:scale(1.2); }
-  .decor span.c{ background:#ffd100; left:45%; top:28%; animation-delay:3.2s; opacity:.08; transform:scale(.8); }
-  @keyframes floaty {
-    0%{ transform: translateY(-8px) rotate(-4deg) }
-    50%{ transform: translateY(10px) rotate(6deg) }
-    100%{ transform: translateY(-8px) rotate(-4deg) }
+  /* overlay shown when autoplay blocked, invites click to start */
+  .overlay {
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    backdrop-filter: blur(2px);
   }
 
-  /* footer with explicit "this is a joke" */
-  .footer {
-    position:absolute; bottom:12px; left:12px; right:12px; display:flex;justify-content:space-between;align-items:center;
-    color:rgba(255,255,255,.8); font-weight:700; font-size:13px;
+  .start-btn {
+    background:#111;
+    color:#fff;
+    border:3px solid #fff;
+    padding:18px 30px;
+    font-size:20px;
+    cursor:pointer;
+    border-radius:10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
   }
-  .badge{ background:rgba(0,0,0,.55); padding:6px 10px;border-radius:999px; color:#fff; font-weight:900; letter-spacing:.6px }
-  .controls{ display:flex; gap:8px; align-items:center; }
 
-  /* small accessible "play sound" button - requires click */
-  .play-btn{ padding:8px 12px;border-radius:8px;border:0;background:#111;color:#fff;cursor:pointer;font-weight:800 }
-  .replay { background:rgba(255,255,255,.06); padding:8px 12px;border-radius:8px;border:0;color:#fff; cursor:pointer; font-weight:700 }
-
-  /* message overlay that appears briefly on load */
-  .notice {
-    position:absolute; top:18px; left:50%; transform:translateX(-50%); background:#fff; color:#111;
-    padding:8px 12px;border-radius:999px; font-weight:900; letter-spacing:.6px; box-shadow:0 10px 30px rgba(0,0,0,.4);
-    opacity:0; transform-origin:center; animation: noticeIn .8s ease forwards;
+  .small {
+    position:fixed;
+    bottom:12px;
+    left:12px;
+    font-size:13px;
+    color:#888;
+    z-index:1000;
   }
-  @keyframes noticeIn { from{opacity:0; transform:translateX(-50%) scale(.9)} to{opacity:1; transform:translateX(-50%) scale(1)} }
 
-  /* make layout responsive */
-  @media (max-width:600px){
-    .main-msg{ font-size:12vw }
-    .sub{ font-size:13px }
+  /* accessible reduced-motion: disable flashing */
+  @media (prefers-reduced-motion: reduce) {
+    .flash { animation: none; background: var(--bg1); color:var(--bg2); }
   }
 </style>
 </head>
 <body>
-  <div class="stage" role="main" aria-live="polite">
-    <div class="notice">Harmless joke — no files or downloads</div>
-
-    <div class="decor" aria-hidden="true">
-      <span class="a"></span><span class="b"></span><span class="c"></span>
-    </div>
-
-    <div class="main-msg" id="mainMsg">YOU<br>ARE<br>AN IDIOT</div>
-    <div class="sub">This page is a harmless prank. Be nice — only use with consent.</div>
-
-    <div class="footer" aria-hidden="false">
-      <div class="badge">SAFE PRANK</div>
-      <div class="controls">
-        <button class="play-btn" id="playSound">Play silly sound</button>
-        <button class="replay" id="replay">Replay animation</button>
-      </div>
-    </div>
+  <div id="page" class="center flash">
+    <!-- Default message is intentionally playful; change it below if you want -->
+    <div class="message accent" id="message">YOU ARE A GOOF</div>
   </div>
 
+  <div id="overlay" class="overlay" style="display:none">
+    <button id="startBtn" class="start-btn">Click to Start →</button>
+  </div>
+
+  <div class="small">Tip: add <code>?safe=1</code> to the URL to disable flashing.</div>
+
 <script>
-/* Harmless animation control — runs on open
-   - No downloads, no forced fullscreen, no deceptive UI.
-   - Sound must be explicitly requested by user (button).
+/*
+  Harmless prank page script:
+   - tries to auto-start the tiny audio sting.
+   - if blocked, shows overlay that starts when clicked.
+   - supports ?safe=1 to disable flashing and reduce motion.
+   - To change the displayed text, change `PRANK_TEXT` below.
 */
 
-// small animated bounce on load
-const msg = document.getElementById('mainMsg');
-const replayBtn = document.getElementById('replay');
-const playBtn = document.getElementById('playSound');
+const PRANK_TEXT = "YOU ARE AN IDIOT"; // change to preferred wording
+const SAFE_PARAM = new URLSearchParams(location.search).has('safe');
 
-function animateOnce() {
-  msg.animate([
-    { transform: 'scale(0.86) rotate(-2deg)', opacity:0.8 },
-    { transform: 'scale(1.06) rotate(2deg)', opacity:1 },
-    { transform: 'scale(0.98) rotate(-1deg)', opacity:1 }
-  ], { duration: 1200, easing: 'cubic-bezier(.2,.9,.2,1)' });
+const page = document.getElementById('page');
+const messageEl = document.getElementById('message');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
 
-  // quick bright flash effect by briefly toggling CSS filter on body
-  document.body.animate([
-    { filter: 'brightness(1)' },
-    { filter: 'brightness(1.25)' },
-    { filter: 'brightness(1)' }
-  ], { duration: 420, easing: 'ease-in-out' });
+if (SAFE_PARAM) {
+  // disable flashing by removing class and making background neutral
+  page.classList.remove('flash');
+  document.body.style.background = "#222";
+  messageEl.style.color = "#fff";
+  // reduce animation speed to 0
+  document.documentElement.style.setProperty('--flash-duration', '1s');
+  // make sure we don't show overlay unless user needs audio
 }
 
-// run immediately on open
-animateOnce();
+// set message (sanitized minimal)
+messageEl.textContent = PRANK_TEXT;
 
-replayBtn.addEventListener('click', () => {
-  animateOnce();
-});
+// --- Audio: simple WebAudio melody (no external files) ---
+let audioCtx;
+function createAndPlaySting() {
+  if (!window.AudioContext && !window.webkitAudioContext) return Promise.reject();
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
 
-// Play a harmless silly tone sequence via WebAudio — only on user click
-let audioCtx, playing=false;
-playBtn.addEventListener('click', async () => {
-  if (playing) return;
+  // short, harmless melody using oscillator + gain envelope
+  const now = audioCtx.currentTime;
+  const master = audioCtx.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.connect(audioCtx.destination);
+
+  const notes = [440, 660, 880, 660]; // A4, E5, A5-ish sequence
+  const durations = [0.12, 0.12, 0.18, 0.18];
+
+  let t = now;
+  notes.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = (i%2===0) ? 'square' : 'sawtooth';
+    osc.frequency.value = freq;
+    osc.connect(g);
+    g.connect(master);
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + durations[i]);
+
+    osc.start(t);
+    osc.stop(t + durations[i] + 0.02);
+
+    t += durations[i];
+  });
+
+  // slight overall fade-out
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+
+  return Promise.resolve();
+}
+
+// Try autoplay on load
+function tryAutoStart() {
+  // Some browsers require a user gesture. Attempt to resume context or play and detect rejection.
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // attempt to resume (may be allowed already)
+  audioCtx.resume().then(() => {
+    return createAndPlaySting();
+  }).catch((err) => {
+    // autoplay blocked
+    showOverlay();
+  });
+}
+
+// overlay to request a user gesture
+function showOverlay() {
+  if (SAFE_PARAM) {
+    // If safe param set, don't force audio or overlay.
+    overlay.style.display = 'none';
+    return;
+  }
+  overlay.style.display = 'flex';
+  startBtn.focus();
+}
+
+startBtn.addEventListener('click', async () => {
+  overlay.style.display = 'none';
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const gain = audioCtx.createGain(); gain.gain.value = 0.12; gain.connect(audioCtx.destination);
-
-    const notes = [440, 523.25, 659.25, 880]; // pleasant major-ish
-    let t = audioCtx.currentTime;
-    const dur = 0.18;
-    notes.forEach((f, i) => {
-      const o = audioCtx.createOscillator();
-      o.type = ['sine','square','sawtooth','triangle'][i % 4];
-      o.frequency.value = f;
-      const g = audioCtx.createGain();
-      g.gain.value = 0.0001;
-      o.connect(g); g.connect(gain);
-      o.start(t + i*dur*0.9);
-      g.gain.linearRampToValueAtTime(0.12, t + i*dur*0.9 + 0.02);
-      g.gain.linearRampToValueAtTime(0.0001, t + i*dur*0.9 + dur);
-      o.stop(t + i*dur*0.9 + dur + 0.02);
-    });
-
-    playing = true;
-    playBtn.textContent = 'Playing...';
-    setTimeout(() => { playing=false; playBtn.textContent='Play silly sound' }, notes.length * dur * 1000 + 200);
-  } catch(e) {
-    console.warn('Audio failed', e);
+    await (audioCtx ? audioCtx.resume() : (audioCtx = new (window.AudioContext || window.webkitAudioContext)(), audioCtx.resume()));
+    await createAndPlaySting();
+  } catch (e) {
+    // ignore failures; still proceed with visual prank
   }
 });
+
+// Make a best-effort autoplay after a tiny timeout to allow page gestures
+window.addEventListener('load', () => {
+  // Small delay to let browsers decide autoplay policy; if blocked we'll show overlay.
+  setTimeout(() => {
+    tryAutoStart();
+  }, 200);
+});
+
+// Accessibility: if user has reduced-motion or safe param, ensure no flashing
+try {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq && mq.matches) {
+    page.classList.remove('flash');
+  }
+} catch(e){}
+
+// Optional: stop flashing after 12 seconds automatically
+setTimeout(() => {
+  page.classList.remove('flash');
+}, 12000);
+
 </script>
 </body>
 </html>
