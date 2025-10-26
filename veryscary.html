@@ -3,452 +3,195 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>You're an Idiot — Safe Prank</title>
+<title>Harmless Prank — YOU ARE AN IDIOT</title>
 <style>
+  /* loud, silly, harmless styling */
   :root{
-    --bg1:#ff0099;
-    --bg2:#00ffff;
-    --accent:#fffa00;
-    --black:#0b0b0b;
+    --bg1:#ff0066;
+    --bg2:#00e6ff;
+    --accent:#ffea00;
   }
-  html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#000;}
   body{
-    background: linear-gradient(45deg,var(--bg1),var(--bg2));
-    animation: colorShift 1.2s linear infinite;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex;align-items:center;justify-content:center;
     overflow:hidden;
+    background:radial-gradient(circle at 20% 20%, rgba(255,0,102,0.12), transparent 8%),
+               radial-gradient(circle at 80% 80%, rgba(0,230,255,0.08), transparent 18%),
+               linear-gradient(135deg,var(--bg1),var(--bg2));
+    animation: hue 3s linear infinite;
+  }
+  @keyframes hue { 0%{filter:hue-rotate(0deg)} 50%{filter:hue-rotate(90deg)} 100%{filter:hue-rotate(180deg)} }
+
+  .stage{
+    width:95vw; max-width:1100px; height:80vh; border-radius:16px;
+    background:rgba(0,0,0,0.32); display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6); position:relative; overflow:hidden;
   }
 
-  @keyframes colorShift {
-    0%{filter: hue-rotate(0deg) saturate(1.2);}
-    50%{filter: hue-rotate(120deg) saturate(1.5);}
-    100%{filter: hue-rotate(240deg) saturate(1.2);}
-  }
-
-  .container{
+  /* Big flashing text */
+  .main-msg{
+    font-family: "Impact", "Arial Black", system-ui, sans-serif;
+    color:#fff;
+    font-size:8vw;
+    line-height:0.92;
     text-align:center;
-    color:white;
-    text-shadow:0 2px 8px rgba(0,0,0,.6);
-    max-width:900px;
-    padding:24px;
-    backdrop-filter: blur(6px);
-    border-radius:12px;
-    box-shadow: 0 8px 40px rgba(0,0,0,.4);
-  }
-
-  h1{
-    font-size:48px;
-    margin:0 0 8px;
+    text-transform:uppercase;
     letter-spacing:1px;
+    transform: rotate(-2deg);
+    text-shadow:
+      0 6px 20px rgba(0,0,0,.7),
+      0 0 24px rgba(255,0,102,.18);
+    animation: shake 1.35s ease-in-out infinite, colorPulse 1.6s linear infinite;
+    padding: 8px 12px;
   }
-  p.lead{
-    margin-top:0;
-    font-size:18px;
-    opacity:.95;
+  @keyframes shake {
+    0%{transform:translateX(-6px) rotate(-2deg)}
+    25%{transform:translateX(6px) rotate(2deg)}
+    50%{transform:translateX(-4px) rotate(-1deg)}
+    75%{transform:translateX(4px) rotate(1deg)}
+    100%{transform:translateX(-6px) rotate(-2deg)}
   }
-
-  .big-btn{
-    margin-top:18px;
-    display:inline-block;
-    padding:14px 22px;
-    font-size:18px;
-    border-radius:10px;
-    border:0;
-    cursor:pointer;
-    background:linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.03));
-    color:white;
-    box-shadow: 0 6px 18px rgba(0,0,0,.35);
-  }
-  .big-btn:active{transform:translateY(1px);}
-
-  .status{
-    margin-top:14px;
-    font-weight:700;
-    color:var(--black);
-    background:rgba(255,255,255,.85);
-    padding:8px 12px;
-    border-radius:8px;
-    display:inline-block;
+  @keyframes colorPulse {
+    0%{color: #fff; text-shadow: 0 6px 40px rgba(255,0,102,.15)}
+    50%{color: var(--accent); text-shadow: 0 12px 80px rgba(255,234,0,.25)}
+    100%{color: #fff; text-shadow: 0 6px 40px rgba(255,0,102,.15)}
   }
 
-  /* Fullscreen overlay (the fake "video") */
-  #overlay{
-    position:fixed;
-    inset:0;
-    background:#000;
-    color:#0f0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    z-index:9999;
-    visibility:hidden;
-    opacity:0;
-    transition:opacity .3s ease, visibility .3s;
+  /* small subtitle + badge */
+  .sub{
+    margin-top:18px;color:rgba(255,255,255,.9);font-weight:800;
+    background:rgba(0,0,0,0.4); padding:10px 14px;border-radius:999px; letter-spacing:.6px;
   }
 
-  #overlay.show{visibility:visible;opacity:1;}
-
-  .screen{
-    width:95vw;
-    max-width:1200px;
-    height:75vh;
-    background:linear-gradient(180deg,#030303 0%, #090909 100%);
-    border:6px solid rgba(255,255,255,.02);
-    box-shadow: inset 0 0 60px rgba(0,255,0,.02), 0 30px 80px rgba(0,0,0,.8);
-    position:relative;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
+  /* flashing background squares for chaos */
+  .decor {
+    position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen;
+  }
+  .decor span{
+    position:absolute; width:220px;height:220px;border-radius:12px;
+    opacity:.06; animation: floaty 6s ease-in-out infinite;
+    filter:blur(8px);
+  }
+  .decor span.a{ background: #ff0066; left:10%; top:5%; animation-delay:0s; }
+  .decor span.b{ background:#00e6ff; right:8%; bottom:8%; animation-delay:1.6s; transform:scale(1.2); }
+  .decor span.c{ background:#ffd100; left:45%; top:28%; animation-delay:3.2s; opacity:.08; transform:scale(.8); }
+  @keyframes floaty {
+    0%{ transform: translateY(-8px) rotate(-4deg) }
+    50%{ transform: translateY(10px) rotate(6deg) }
+    100%{ transform: translateY(-8px) rotate(-4deg) }
   }
 
-  /* fake console lines */
-  .console{
-    flex:1;
-    padding:28px;
-    font-family: "Courier New", monospace;
-    font-size:18px;
-    color:#a6ffa6;
-    background:
-      linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.05));
-    overflow:hidden;
-    position:relative;
+  /* footer with explicit "this is a joke" */
+  .footer {
+    position:absolute; bottom:12px; left:12px; right:12px; display:flex;justify-content:space-between;align-items:center;
+    color:rgba(255,255,255,.8); font-weight:700; font-size:13px;
   }
-  .console .line{
-    opacity:0;
-    transform:translateY(6px);
-    animation:lineIn .12s forwards;
-  }
-  @keyframes lineIn{to{opacity:1;transform:none;}}
+  .badge{ background:rgba(0,0,0,.55); padding:6px 10px;border-radius:999px; color:#fff; font-weight:900; letter-spacing:.6px }
+  .controls{ display:flex; gap:8px; align-items:center; }
 
-  .progress-wrap{
-    padding:18px;
-    background:rgba(255,255,255,.02);
-    border-top:1px solid rgba(255,255,255,.02);
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-  .progress{
-    flex:1;
-    height:18px;
-    background:rgba(255,255,255,.05);
-    border-radius:9px;
-    overflow:hidden;
-    position:relative;
-  }
-  .progress .bar{
-    height:100%;
-    width:0%;
-    background:linear-gradient(90deg,#12ff36,#00c9ff);
-    transition:width .2s linear;
-    box-shadow:0 6px 20px rgba(0,255,0,.06) inset;
-  }
-  .progress .label{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#001;
-    font-weight:700;
-    text-shadow:none;
-    font-family:system-ui,Segoe UI,Roboto,Arial;
-  }
+  /* small accessible "play sound" button - requires click */
+  .play-btn{ padding:8px 12px;border-radius:8px;border:0;background:#111;color:#fff;cursor:pointer;font-weight:800 }
+  .replay { background:rgba(255,255,255,.06); padding:8px 12px;border-radius:8px;border:0;color:#fff; cursor:pointer; font-weight:700 }
 
-  /* final message */
-  .final{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:96px;
-    color:#ff0033;
-    font-weight:900;
-    opacity:0;
-    pointer-events:none;
-    text-shadow: 0 6px 40px rgba(0,0,0,.85);
-    transform:scale(.9);
-    transition:all .7s cubic-bezier(.2,.8,.2,1);
+  /* message overlay that appears briefly on load */
+  .notice {
+    position:absolute; top:18px; left:50%; transform:translateX(-50%); background:#fff; color:#111;
+    padding:8px 12px;border-radius:999px; font-weight:900; letter-spacing:.6px; box-shadow:0 10px 30px rgba(0,0,0,.4);
+    opacity:0; transform-origin:center; animation: noticeIn .8s ease forwards;
   }
-  .final.show{opacity:1;transform:scale(1);}
+  @keyframes noticeIn { from{opacity:0; transform:translateX(-50%) scale(.9)} to{opacity:1; transform:translateX(-50%) scale(1)} }
 
-  /* small footer */
-  .overlay-footer{
-    position:absolute;
-    bottom:10px;
-    left:10px;
-    color:#666;
-    font-size:13px;
-    font-family:system-ui,Segoe UI,Roboto,Arial;
-  }
-
-  /* tiny warning label - safe mode */
-  .safe-tag{
-    display:inline-block;
-    background: rgba(0,0,0,.2);
-    padding:6px 10px;
-    border-radius:999px;
-    font-weight:700;
-    margin-left:10px;
+  /* make layout responsive */
+  @media (max-width:600px){
+    .main-msg{ font-size:12vw }
+    .sub{ font-size:13px }
   }
 </style>
 </head>
 <body>
+  <div class="stage" role="main" aria-live="polite">
+    <div class="notice">Harmless joke — no files or downloads</div>
 
-<div class="container" role="main">
-  <h1>YOU'RE AN IDIOT (SAFE PRANK)</h1>
-  <p class="lead">This is a harmless demo that imitates a scary download/execute window. It does not download or execute any real file. Click the button below to begin — your browser will NOT go fullscreen without your explicit permission.</p>
-
-  <button id="startBtn" class="big-btn">Start Annoying Prank (Requires a Click)</button>
-  <span class="status" id="status">Idle</span>
-  <span class="safe-tag">SAFE</span>
-
-  <p style="margin-top:18px;color:rgba(0,0,0,.6);font-size:13px;">
-    Implementation note: audio is generated locally in your browser; the “virus.exe” and execution are simulated text animations only.
-  </p>
-</div>
-
-<!-- Fullscreen overlay (fake video) -->
-<div id="overlay" aria-hidden="true">
-  <div class="screen" role="dialog" aria-label="Fake virus download">
-    <div class="console" id="console">
-      <!-- lines will be injected -->
+    <div class="decor" aria-hidden="true">
+      <span class="a"></span><span class="b"></span><span class="c"></span>
     </div>
 
-    <div class="progress-wrap">
-      <div style="color:#9f9">Downloading: <strong id="fileName">virus.exe</strong></div>
-      <div class="progress" aria-hidden="true">
-        <div class="bar" id="bar"></div>
-        <div class="label" id="percentLabel">0%</div>
+    <div class="main-msg" id="mainMsg">YOU<br>ARE<br>AN IDIOT</div>
+    <div class="sub">This page is a harmless prank. Be nice — only use with consent.</div>
+
+    <div class="footer" aria-hidden="false">
+      <div class="badge">SAFE PRANK</div>
+      <div class="controls">
+        <button class="play-btn" id="playSound">Play silly sound</button>
+        <button class="replay" id="replay">Replay animation</button>
       </div>
     </div>
-
-    <div class="final" id="finalMsg">YOU ARE AN IDIOT</div>
-
-    <div class="overlay-footer">Fake-download demo • No files downloaded</div>
   </div>
-</div>
-
-<!-- Fullscreen request button appears after initial countdown -->
-<div style="position:fixed;right:20px;top:20px;z-index:2000">
-  <button id="fsBtn" class="big-btn" style="display:none;">Enter Fullscreen</button>
-</div>
 
 <script>
-/*
-  Safe Prank Script
-  - Generates audio using WebAudio API (no files).
-  - Starts flashing animation and audio on user click.
-  - After 5 seconds shows an "Enter Fullscreen" button (must be clicked).
-  - In fullscreen shows a simulated download progress and console text.
-  - At the end displays "YOU ARE AN IDIOT".
-  - No real file is downloaded or executed.
+/* Harmless animation control — runs on open
+   - No downloads, no forced fullscreen, no deceptive UI.
+   - Sound must be explicitly requested by user (button).
 */
 
-// UI elements
-const startBtn = document.getElementById('startBtn');
-const status = document.getElementById('status');
-const fsBtn = document.getElementById('fsBtn');
-const overlay = document.getElementById('overlay');
-const consoleEl = document.getElementById('console');
-const bar = document.getElementById('bar');
-const percentLabel = document.getElementById('percentLabel');
-const finalMsg = document.getElementById('finalMsg');
-const fileNameEl = document.getElementById('fileName');
+// small animated bounce on load
+const msg = document.getElementById('mainMsg');
+const replayBtn = document.getElementById('replay');
+const playBtn = document.getElementById('playSound');
 
-let audioCtx, masterGain, playingOsc;
-let started = false;
+function animateOnce() {
+  msg.animate([
+    { transform: 'scale(0.86) rotate(-2deg)', opacity:0.8 },
+    { transform: 'scale(1.06) rotate(2deg)', opacity:1 },
+    { transform: 'scale(0.98) rotate(-1deg)', opacity:1 }
+  ], { duration: 1200, easing: 'cubic-bezier(.2,.9,.2,1)' });
 
-function playAnnoyingMusic() {
-  // Use WebAudio API to make a short repeating melody — no external files.
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.12;
-  masterGain.connect(audioCtx.destination);
-
-  // create repeating pattern
-  const notes = [440, 523.25, 659.25, 523.25]; // A4, C5, E5, C5
-  let i = 0;
-  // schedule a simple loop
-  playingOsc = setInterval(() => {
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = (Math.random()>.5)?'square':'sawtooth';
-    o.frequency.value = notes[i % notes.length] * (1 + (Math.random()-0.5)*0.06);
-    g.gain.value = 0.08;
-    o.connect(g); g.connect(masterGain);
-    o.start();
-    // short blip
-    g.gain.setTargetAtTime(0.0001, audioCtx.currentTime + 0.06, 0.08);
-    o.stop(audioCtx.currentTime + 0.18);
-    i++;
-  }, 220);
+  // quick bright flash effect by briefly toggling CSS filter on body
+  document.body.animate([
+    { filter: 'brightness(1)' },
+    { filter: 'brightness(1.25)' },
+    { filter: 'brightness(1)' }
+  ], { duration: 420, easing: 'ease-in-out' });
 }
 
-function stopAnnoyingMusic(){
-  if(playingOsc) { clearInterval(playingOsc); playingOsc = null; }
-  if(masterGain) masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-}
+// run immediately on open
+animateOnce();
 
-// prepare console lines for the fake video
-const consoleLines = [
-  "Initializing fake-security-layer...",
-  "Connecting to 127.0.0.1:1337 ...",
-  "Authenticating user... OK",
-  "Handshake complete.",
-  "Preparing payload: virus.exe",
-  "Allocating virtual memory...",
-  "Bypassing harmless-sandbox (simulated)...",
-  "Starting download manager...",
-  "Scanning for permission... none required (this is a demo)."
-];
-
-function showConsoleLines() {
-  consoleEl.innerHTML = '';
-  consoleLines.forEach((t, idx) => {
-    const div = document.createElement('div');
-    div.className = 'line';
-    div.style.animationDelay = (idx*0.15)+'s';
-    div.textContent = t;
-    consoleEl.appendChild(div);
-  });
-}
-
-// main sequence
-startBtn.addEventListener('click', () => {
-  if (started) return;
-  started = true;
-  status.textContent = 'Playing music...';
-  startBtn.textContent = 'Annoying music playing';
-  startBtn.disabled = true;
-  playAnnoyingMusic();
-
-  // after 5 seconds show FS button (browser requires user to click to actually allow fullscreen/autoplay)
-  status.textContent = 'Will offer fullscreen in 5s';
-  let countdown = 5;
-  const countdownTick = setInterval(()=> {
-    countdown--;
-    status.textContent = 'Offering fullscreen in ' + countdown + 's';
-    if(countdown <= 0) {
-      clearInterval(countdownTick);
-      status.textContent = 'Click "Enter Fullscreen" to continue (required)';
-      fsBtn.style.display = 'inline-block';
-      fsBtn.focus();
-    }
-  }, 1000);
+replayBtn.addEventListener('click', () => {
+  animateOnce();
 });
 
-// fullscreen button handler (must be clicked)
-fsBtn.addEventListener('click', async () => {
-  fsBtn.disabled = true;
-  status.textContent = 'Requesting fullscreen...';
-  // request fullscreen on documentElement
+// Play a harmless silly tone sequence via WebAudio — only on user click
+let audioCtx, playing=false;
+playBtn.addEventListener('click', async () => {
+  if (playing) return;
   try {
-    await document.documentElement.requestFullscreen();
-  } catch (e) {
-    // some browsers require it on a particular element; try overlay
-    try { await overlay.requestFullscreen(); } catch(e){}
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const gain = audioCtx.createGain(); gain.gain.value = 0.12; gain.connect(audioCtx.destination);
+
+    const notes = [440, 523.25, 659.25, 880]; // pleasant major-ish
+    let t = audioCtx.currentTime;
+    const dur = 0.18;
+    notes.forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = ['sine','square','sawtooth','triangle'][i % 4];
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      g.gain.value = 0.0001;
+      o.connect(g); g.connect(gain);
+      o.start(t + i*dur*0.9);
+      g.gain.linearRampToValueAtTime(0.12, t + i*dur*0.9 + 0.02);
+      g.gain.linearRampToValueAtTime(0.0001, t + i*dur*0.9 + dur);
+      o.stop(t + i*dur*0.9 + dur + 0.02);
+    });
+
+    playing = true;
+    playBtn.textContent = 'Playing...';
+    setTimeout(() => { playing=false; playBtn.textContent='Play silly sound' }, notes.length * dur * 1000 + 200);
+  } catch(e) {
+    console.warn('Audio failed', e);
   }
-
-  openOverlay();
 });
-
-// open the fake "video" overlay
-function openOverlay() {
-  overlay.classList.add('show');
-  overlay.setAttribute('aria-hidden','false');
-  status.textContent = 'Showing fake download';
-  showConsoleLines();
-
-  // start a simulated download progress
-  let progress = 0;
-  // random-ish download speed to feel realistic
-  const totalMs = 11000; // ~11 seconds total
-  const steps = 110;
-  const stepMs = totalMs/steps;
-  const increment = 100/steps;
-
-  // choose a file name to display (we'll use the requested "virus.exe" as fake text)
-  fileNameEl.textContent = 'virus.exe'; // THIS IS JUST A LABEL — nothing is downloaded
-
-  const t = setInterval(() => {
-    progress += increment;
-    if (progress > 100) progress = 100;
-    bar.style.width = progress + '%';
-    percentLabel.textContent = Math.round(progress) + '%';
-
-    // update console with occasional lines
-    if (Math.random() < 0.13) {
-      const newLine = document.createElement('div');
-      newLine.className = 'line';
-      newLine.textContent = '[DOWNLOAD] chunk received — ' + Math.floor(Math.random()*900 + 100) + ' KB';
-      consoleEl.appendChild(newLine);
-      // keep console scrolled to bottom
-      consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
-
-    // Near the finish, show 'executing...' then final message
-    if (progress >= 100) {
-      clearInterval(t);
-      addConsoleLine('Download complete. Verifying integrity... OK');
-      setTimeout(()=> {
-        addConsoleLine('Executing virus.exe (simulated)...');
-        // brief pause then show final message
-        setTimeout(()=> {
-          showFinalMessage();
-        }, 1400);
-      }, 800);
-    }
-  }, stepMs);
-}
-
-function addConsoleLine(text){
-  const d = document.createElement('div');
-  d.className = 'line';
-  d.style.animationDelay = '0s';
-  d.textContent = text;
-  consoleEl.appendChild(d);
-  consoleEl.scrollTop = consoleEl.scrollHeight;
-}
-
-function showFinalMessage(){
-  // show the big final text, stop the music
-  finalMsg.classList.add('show');
-  addConsoleLine('(simulated) process finished. system stable.');
-  status.textContent = 'Finished — safe demo';
-  stopAnnoyingMusic();
-
-  // also show a small clickable dismiss message inside the overlay (click anywhere to exit fullscreen)
-  overlay.addEventListener('click', exitFullscreenOnce);
-  overlay.style.cursor = 'pointer';
-}
-
-// clicking overlay closes fullscreen (if active)
-async function exitFullscreenOnce(){
-  overlay.removeEventListener('click', exitFullscreenOnce);
-  overlay.style.cursor = 'default';
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-  } catch(e){}
-  overlay.classList.remove('show');
-  overlay.setAttribute('aria-hidden','true');
-  status.textContent = 'Demo ended (safe).';
-  // re-enable start so you can replay
-  startBtn.disabled = false;
-  startBtn.textContent = 'Replay Prank';
-  fsBtn.style.display = 'none';
-  fsBtn.disabled = false;
-}
-
-/* Prevent accidental keyboard fullscreen hijack: we do nothing special,
-   and we ensure the page never actually downloads or executes files. */
-
 </script>
 </body>
 </html>
-
