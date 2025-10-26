@@ -36,10 +36,8 @@
     /* Central flashing cropped GIF container (permanent, non-closable)
        - This container crops the source gif so only the "flashing" region shows.
        - Adjust --img-scale / --img-offset-x / --img-offset-y if you need to change the crop.
-       - I've made the flashing container fill the entire viewport so the non-moving (central)
-         element appears much larger and covers the page. The gif itself is scaled and offset
-         so only the desired flashing portion is visible; tweak the offsets/scale below if you
-         still see unwanted blue edges.
+       - I reverted the aggressive zoom and applied a smaller scale so the central element is big
+         but the overlay text is still readable.
     */
     .flash-overlay {
       position: fixed;
@@ -58,14 +56,13 @@
       justify-content: center;
       background: transparent;
 
-      /* sensible defaults — tweak these variables to fine tune the crop/zoom */
-      --img-scale: 2.2;       /* increase to zoom in further and crop edges */
-      --img-offset-x: -300px; /* move left/right to hide unwanted side */
-      --img-offset-y: -140px; /* move up/down to hide unwanted top */
+      /* smaller scale compared to previous change */
+      --img-scale: 1.35;      /* smaller zoom so text remains legible */
+      --img-offset-x: -180px; /* nudge left/right to hide unwanted side */
+      --img-offset-y: -60px;  /* nudge up/down to hide unwanted top */
     }
     .flash-overlay img {
-      /* Scale the source gif and offset it, so only the desired region shows inside the container.
-         Increase --img-scale to crop even more; adjust offsets to hide the blue top/side. */
+      /* Scale the source gif and offset it, so only the desired region shows inside the container. */
       transform: scale(var(--img-scale));
       transform-origin: center top;
       margin-left: var(--img-offset-x);
@@ -74,9 +71,9 @@
       -webkit-user-drag: none;
       pointer-events: none;
       display: block;
-      /* ensure the image is large enough to cover the viewport after scaling */
-      min-width: 120%;
-      min-height: 120%;
+      /* ensure the image covers the viewport after scaling without being excessively large */
+      min-width: 105%;
+      min-height: 105%;
     }
 
     .scare-close {
