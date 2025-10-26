@@ -1,1 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Very Scary</title>
+  <style>
+    /* Overlay window styles */
+    .scare-overlay {
+      position: fixed;
+      z-index: 2147483646;
+      background: transparent;
+      border-radius: 6px;
+      overflow: visible;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      transform-origin: center;
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+      pointer-events: auto;
+    }
+    .scare-overlay.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .scare-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      border-radius: 6px;
+      display: block;
+    }
+    .scare-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      line-height: 26px;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 2;
+      padding: 0;
+    }
+    .scare-close:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
+    /* Make sure body can't be selected while spawns appear */
+    body { margin: 0; }
+  </style>
+</head>
+<body>
 
+<script>
+/* Very Scary infinite spawn - created by GitHub Copilot Chat Assistant per user request */
+(function () {
+  const CONFIG = {
+    gifPath: 'gif-with-window.gif', // expects this file at the repo root next to this HTML
+    initialCount: 1,
+    spawnOnClose: 2,
+    maxInstances: Infinity // infinite spawning as requested
+  };
+
+  function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function createScare(atX, atY) {
+    const current = document.querySelectorAll('.scare-overlay').length;
+    if (current >= CONFIG.maxInstances) return null; // kept for completeness
+
+    const el = document.createElement('div');
+    el.className = 'scare-overlay';
+
+    // Random width for variety
+    const width = 320 + randomInt(0, 160); // 320..480
+    el.style.width = width + 'px';
+
+    // Position - random if not specified
+    const x = (typeof atX === 'number') ? atX : Math.max(10, randomInt(10, Math.max(10, window.innerWidth - width - 10)));
+    const y = (typeof atY === 'number') ? atY : Math.max(10, randomInt(10, Math.max(10, window.innerHeight - 240)));
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+
+    // Image
+    const img = document.createElement('img');
+    img.src = CONFIG.gifPath;
+    img.alt = 'scary';
+    img.className = 'scare-img';
+    img.draggable = false;
+
+    // Close button
+    const btn = document.createElement('button');
+    btn.className = 'scare-close';
+    btn.innerText = '×';
+    btn.title = 'Close';
+
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      // remove this overlay
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+      // spawn replacements immediately (infinite behavior)
+      for (let i = 0; i < CONFIG.spawnOnClose; i++) {
+        // small randomized delay to stagger creation
+        setTimeout(() => { createScare(); }, 30 * i + randomInt(0,120));
+      }
+    });
+
+    // If clicked anywhere else on the overlay, also close and spawn (optional)
+    el.addEventListener('click', function (ev) {
+      // don't trigger when clicking the button
+      if (ev.target === btn) return;
+      btn.click();
+    });
+
+    el.appendChild(btn);
+    el.appendChild(img);
+    document.body.appendChild(el);
+
+    // Slight pop-in animation
+    requestAnimationFrame(() => el.classList.add('visible'));
+
+    return el;
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (let i = 0; i < CONFIG.initialCount; i++) createScare();
+  });
+})();
+</script>
+
+</body>
+</html>
