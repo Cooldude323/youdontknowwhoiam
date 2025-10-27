@@ -1,1 +1,116 @@
+/* ===== Global styles ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
+body {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+/* ===== Headings ===== */
+.heading {
+  font-size: clamp(36px, 6vw, 70px);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-align: center;
+  margin-bottom: 40px;
+  color: #fff;
+  text-shadow: 0 0 20px #ff0000, 0 0 40px rgba(255, 0, 0, 0.6);
+}
+
+/* ===== Door section ===== */
+.door-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* For each door + label + button grouping */
+.door-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  width: 240px;
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.door-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+}
+
+/* ===== Door images ===== */
+.door-card img {
+  width: 100%;
+  border-radius: 8px;
+  transition: filter 0.3s ease;
+}
+
+.door-card:hover img {
+  filter: brightness(1.2);
+}
+
+/* ===== Subheadings under each door ===== */
+.door-card h2 {
+  font-size: 22px;
+  margin: 15px 0 10px;
+  font-weight: 600;
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+.scary1 { color: #55ff88; }
+.scary2 { color: #ffaa00; }
+.scary3 { color: #ff4444; }
+
+/* ===== Buttons ===== */
+button {
+  border: none;
+  outline: none;
+  background: linear-gradient(90deg, #ff0000, #770000);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #ff4444, #aa0000);
+  transform: scale(1.05);
+}
+
+/* style the link inside button */
+button a {
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* ===== Responsive layout ===== */
+@media (max-width: 768px) {
+  .door-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .door-card {
+    width: 80%;
+    max-width: 320px;
+  }
+}
