@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Your IP & Location</title>
+    <title>Your IPv4 & Location</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -18,28 +18,41 @@
         border-radius: 10px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       }
-      h1 {
-        margin-bottom: 10px;
-      }
+      h1 { margin-bottom: 10px; }
     </style>
   </head>
   <body>
     <div class="card">
       <h1>Your IP Information</h1>
-      <p><strong>IP Address:</strong> <span id="ip">Loading...</span></p>
+      <p><strong>IPv4 Address:</strong> <span id="ip">Loading...</span></p>
       <p><strong>City:</strong> <span id="city">Loading...</span></p>
       <p><strong>Region:</strong> <span id="region">Loading...</span></p>
       <p><strong>Country:</strong> <span id="country">Loading...</span></p>
     </div>
 
     <script>
-      fetch('https://ipapi.co/json/')
+      // Step 1: Get IPv4 address
+      fetch('https://api.ipify.org?format=json')
         .then(response => response.json())
         .then(data => {
+          // Only keep IPv4 (skip IPv6)
+          if (data.ip.includes(':')) {
+            document.getElementById('ip').textContent = 'IPv6 detected (hidden)';
+            return;
+          }
+
           document.getElementById('ip').textContent = data.ip;
-          document.getElementById('city').textContent = data.city;
-          document.getElementById('region').textContent = data.region;
-          document.getElementById('country').textContent = data.country_name;
+
+          // Step 2: Get location from IP
+          return fetch(`https://ipapi.co/${data.ip}/json/`);
+        })
+        .then(response => response ? response.json() : null)
+        .then(location => {
+          if (location) {
+            document.getElementById('city').textContent = location.city || 'Unknown';
+            document.getElementById('region').textContent = location.region || 'Unknown';
+            document.getElementById('country').textContent = location.country_name || 'Unknown';
+          }
         })
         .catch(error => {
           document.getElementById('ip').textContent = 'Unavailable';
