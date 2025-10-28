@@ -1,1 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Your IP & Location</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        color: #333;
+        text-align: center;
+        margin-top: 100px;
+      }
+      .card {
+        display: inline-block;
+        background: white;
+        padding: 20px 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+      h1 {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Your IP Information</h1>
+      <p><strong>IP Address:</strong> <span id="ip">Loading...</span></p>
+      <p><strong>City:</strong> <span id="city">Loading...</span></p>
+      <p><strong>Region:</strong> <span id="region">Loading...</span></p>
+      <p><strong>Country:</strong> <span id="country">Loading...</span></p>
+    </div>
 
+    <script>
+      fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('ip').textContent = data.ip;
+          document.getElementById('city').textContent = data.city;
+          document.getElementById('region').textContent = data.region;
+          document.getElementById('country').textContent = data.country_name;
+        })
+        .catch(error => {
+          document.getElementById('ip').textContent = 'Unavailable';
+          document.getElementById('city').textContent = 'Unavailable';
+          document.getElementById('region').textContent = 'Unavailable';
+          document.getElementById('country').textContent = 'Unavailable';
+          console.error('Error fetching IP info:', error);
+        });
+    </script>
+  </body>
+</html>
