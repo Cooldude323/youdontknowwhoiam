@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your IPv4 & Location + Console Window</title>
+  <style>
+    body {
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.95)),
+                  url("/taylor-wright-2aSpCOPNyO0-unsplash.jpg")
+                  center / cover no-repeat fixed;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .card {
+      display: inline-block;
+      background: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      color: #333;
+    }
+
+    h1 { margin-bottom: 10px; }
+
+    /* Console window overlay */
+    #consoleWindow {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      color: #00ff00;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 16px;
+      padding: 20px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      box-sizing: border-box;
+      z-index: 9999;
+    }
+
+    .line {
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="ipCard">
+    <h1>Your IP Information</h1>
+    <p><strong>IPv4 Address:</strong> <span id="ip">Loading...</span></p>
+    <p><strong>City:</strong> <span id="city">Loading...</span></p>
+    <p><strong>Region:</strong> <span id="region">Loading...</span></p>
+    <p><strong>Country:</strong> <span id="country">Loading...</span></p>
+  </div>
+
+  <div id="consoleWindow"></div>
+
+  <script>
+    let userData = {
+      ip: 'Unavailable',
+      city: 'Unknown',
+      region: 'Unknown',
+      country: 'Unknown'
+    };
+
+    // Step 1: Get IPv4 + location
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        if (data.ip.includes(':')) {
+          document.getElementById('ip').textContent = 'IPv6 detected (hidden)';
+          return;
+        }
+        document.getElementById('ip').textContent = data.ip;
+        userData.ip = data.ip;
+
+        return fetch(`https://ipapi.co/${data.ip}/json/`);
+      })
+      .then(response => response ? response.json() : null)
+      .then(location => {
+        if (location) {
+          document.getElementById('city').textContent = location.city || 'Unknown';
+          document.getElementById('region').textContent = location.region || 'Unknown';
+          document.getElementById('country').textContent = location.country_name || 'Unknown';
+
+          userData.city = location.city || 'Unknown';
+          userData.region = location.region || 'Unknown';
+          userData.country = location.country_name || 'Unknown';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching IP info:', error);
+      });
+
+    // Typing animation for console
+    function typeLines(lines, container, delayBetweenLines = 600) {
+      let i = 0;
+      function typeNext() {
+        if (i < lines.length) {
+          const line = document.createElement('div');
+          line.classList.add('line');
+          line.textContent = lines[i];
+          container.appendChild(line);
+          container.scrollTop = container.scrollHeight;
+          i++;
+          setTimeout(typeNext, delayBetweenLines);
+        }
+      }
+      typeNext();
+    }
+
+    // Console window logic
+    function showConsole() {
+      const consoleWindow = document.getElementById('consoleWindow');
+      document.body.style.overflow = 'hidden';
+      consoleWindow.style.display = 'block';
+
+      const lines = [
+        'Initializing console...',
+        'Loading network modules...',
+        `User IP address: ${userData.ip}`,
+        `Location: ${userData.city}, ${userData.region}, ${userData.country}`,
+        'Connection verified.',
+        '',
+        'Welcome to the system interface.',
+        'System ready.'
+      ];
+
+      typeLines(lines, consoleWindow);
+    }
+
+    // Step 2: Show console after 5 seconds
+    setTimeout(showConsole, 5000);
+  </script>
+</body>
+</html>
