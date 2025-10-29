@@ -125,41 +125,27 @@
     }
 
     // Console window logic
-    function showConsole() {
-      const consoleWindow = document.getElementById('consoleWindow');
-      document.body.style.overflow = 'hidden';
-      consoleWindow.style.display = 'block';
+  function showConsole() {
+  const consoleWindow = document.getElementById('consoleWindow');
+  document.body.style.overflow = 'hidden';
+  consoleWindow.style.display = 'block';
 
-      const lines = [
-        'Initializing console...',
-        'Loading network modules...',
-        'Target IP address: ${userData.ip}',
-        'Location: ${userData.city}, ${userData.region}, ${userData.country}',
-        'Connection verified.',
-        'Preparing Payload',
-        '...3',
-        '...2',
-        '...1',
-        'Releasing Payload',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        '${userData.ip} 1 file with 8645295 Terabytes of Data sent',
-        ' Network Diconnected. Attack Succesful on ${userData.ip}',
-        'Hack Complete',
-      ];
+  // use backticks so ${...} is evaluated now (current userData values)
+  const lines = [
+    `Initializing console...`,
+    `Loading network modules...`,
+    `Target IP address: ${userData.ip}`,
+    `Location: ${userData.city}, ${userData.region}, ${userData.country}`,
+    `Connection verified.`,
+    `Preparing Payload`,
+    `...3`,
+    `...2`,
+    `...1`,
+    `Releasing Payload`,
+    `${userData.ip} 1 file with 8645295 Terabytes of Data sent`,
+    `Network Diconnected. Attack Succesful on ${userData.ip}`,
+    `Hack Complete`,
+  ];
 
-      typeLines(lines, consoleWindow);
-    }
-
-    // Step 2: Show console after 5 seconds
-    setTimeout(showConsole, 5000);
-  </script>
-</body>
-</html>
+  typeLines(lines, consoleWindow);
+}
