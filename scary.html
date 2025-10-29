@@ -80,32 +80,36 @@
 
     // Step 1: Get IPv4 + location
     fetch('https://api.ipify.org?format=json')
-      .then(response => response.json())
-      .then(data => {
-        if (data.ip.includes(':')) {
-          document.getElementById('ip').textContent = 'IPv6 detected (hidden)';
-          return;
-        }
-        document.getElementById('ip').textContent = data.ip;
-        userData.ip = data.ip;
+  .then(response => response.json())
+  .then(data => {
+    if (data.ip.includes(':')) {
+      document.getElementById('ip').textContent = 'IPv6 detected (hidden)';
+      return;
+    }
+    document.getElementById('ip').textContent = data.ip;
+    userData.ip = data.ip;
 
-        return fetch(`https://ipapi.co/${data.ip}/json/`);
-      })
-      .then(response => response ? response.json() : null)
-      .then(location => {
-        if (location) {
-          document.getElementById('city').textContent = location.city || 'Unknown';
-          document.getElementById('region').textContent = location.region || 'Unknown';
-          document.getElementById('country').textContent = location.country_name || 'Unknown';
+    return fetch(`https://ipapi.co/${data.ip}/json/`);
+  })
+  .then(response => response ? response.json() : null)
+  .then(location => {
+    if (location) {
+      document.getElementById('city').textContent = location.city || 'Unknown';
+      document.getElementById('region').textContent = location.region || 'Unknown';
+      document.getElementById('country').textContent = location.country_name || 'Unknown';
 
-          userData.city = location.city || 'Unknown';
-          userData.region = location.region || 'Unknown';
-          userData.country = location.country_name || 'Unknown';
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching IP info:', error);
-      });
+      userData.city = location.city || 'Unknown';
+      userData.region = location.region || 'Unknown';
+      userData.country = location.country_name || 'Unknown';
+    }
+
+    // ✅ Now that userData is ready, show the console after a short delay
+    setTimeout(showConsole, 1000);
+  })
+  .catch(error => {
+    console.error('Error fetching IP info:', error);
+  });
+
 
     // Typing animation for console
     function typeLines(lines, container, delayBetweenLines = 600) {
