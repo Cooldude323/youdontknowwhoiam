@@ -33,11 +33,7 @@
       border-radius: 6px;
     }
 
-    /* Central flashing cropped GIF container (permanent, non-closable)
-       - This container crops the source gif so only the "flashing" region shows.
-       - Adjust --img-scale / --img-offset-x / --img-offset-y if you need to change the crop.
-       - I reverted the aggressive zoom and applied a smaller scale so the central element is big
-         but the overlay text is still readable.
+  
     */
     .flash-overlay {
       position: fixed;
@@ -58,7 +54,7 @@
 
       /* smaller scale compared to previous change */
       --img-scale: 0.75;      /* smaller zoom so text remains legible */
-      --img-offset-x: -180px; /* nudge left/right to hide unwanted side */
+      --img-offset-x: -190px; /* nudge left/right to hide unwanted side */
       --img-offset-y: 500px;  /* nudge up/down to hide unwanted top */
     }
     .flash-overlay img {
@@ -103,11 +99,7 @@
 <body>
 
 <script>
-/* Very Scary bouncing windows with stacked audio
-   - Shows a central cropped flashing GIF (non-closable) immediately and plays its audio on loop.
-   - After 8 seconds the first bouncing window is spawned. The central flashing element remains.
-   - The cropped region is achieved via CSS cropping/offsets; tweak the CSS variables at the top
-     of the file if the flashing region needs to be adjusted.
+/
 */
 (function () {
   const CONFIG = {
