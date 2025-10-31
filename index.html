@@ -4,29 +4,71 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pick One Door</title>
-    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        background-color: #111;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+      }
+      .door-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .door-card {
+        background: #222;
+        padding: 12px;
+        border-radius: 8px;
+        width: 240px;
+      }
+      .door-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      button a {
+        color: #fff;
+        text-decoration: none;
+      }
+    </style>
   </head>
   <body>
     <h1 class="heading">Pick One Door</h1>
 
     <div class="door-container">
       <div class="door-card">
-        <h2 class="scary1">Not Scary At All</h2>
-        <img class="door1" src="/IMG_1707.jpeg" alt="Not scary door" />
-        <button><a href="notscary.html">Pick Me</a></button>
+        <h2>Not Scary At All</h2>
+        <img src="IMG_1707.jpeg" alt="Not scary door" />
+        <button><a href="#">Pick Me</a></button>
       </div>
 
       <div class="door-card">
-        <h2 class="scary2">Scary</h2>
-        <img class="door2" src="/IMG_1711.jpeg" alt="Scary door" />
-        <button><a href="scary.html">Pick Me</a></button>
+        <h2>Scary</h2>
+        <img src="IMG_1711.jpeg" alt="Scary door" />
+        <button><a href="#">Pick Me</a></button>
       </div>
 
       <div class="door-card">
-        <h2 class="scary3">Very Scary</h2>
-        <img class="door3" src="/IMG_1713.jpeg" alt="Very scary door" />
-        <button><a href="veryscary.html">Pick Me</a></button>
+        <h2>Very Scary</h2>
+        <img src="IMG_1713.jpeg" alt="Very scary door" />
+        <button><a href="#">Pick Me</a></button>
       </div>
     </div>
+
+   
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        fetch("/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: "index.html" })
+        }).catch(() => {});
+      });
+    </script>
   </body>
 </html>
