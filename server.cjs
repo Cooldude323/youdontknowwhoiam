@@ -1,4 +1,4 @@
-// server.js
+// server.cjs
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -7,8 +7,8 @@ const PORT = 3000;
 
 // ------------------- CONFIG -------------------
 const logFile = path.join(__dirname, 'visitors.log');
-const ADMIN_USER = 'admin';      // Change username
-const ADMIN_PASS = 'password';   // Change password
+const ADMIN_USER = 'admin';      // change username
+const ADMIN_PASS = 'password';   // change password
 // ---------------------------------------------
 
 // Create log file if it doesn't exist
@@ -19,9 +19,9 @@ if (!fs.existsSync(logFile)) {
 // Middleware to log every request
 app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  console.log('Detected IP:', ip);  // Logs in terminal
-  fs.appendFileSync(logFile, ip + '\n');  // Append IP to file
-  next();  // Continue to route handlers
+  console.log('Detected IP:', ip);             // logs to terminal
+  fs.appendFileSync(logFile, ip + '\n');      // append to file
+  next();
 });
 
 // Serve index.html at root
@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Simple login form for viewing logs
+// Simple login page to view logs
 app.get('/logs', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) {
