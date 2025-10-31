@@ -1,14 +1,8 @@
 {
-  "name": "ip-logger-separated-structure",
+  "name": "iplogger",
   "version": "1.0.0",
-  "main": "server.js",
-  "type": "module",
+  "main": "server.cjs",
   "dependencies": {
-    "basic-auth": "^2.0.1",
-    "express": "^4.19.2",
-    "helmet": "^7.0.2"
-  },
-  "scripts": {
-    "start": "node server.js"
+    "express": "^4.18.2"
   }
 }
