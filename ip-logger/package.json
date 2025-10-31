@@ -1,1 +1,21 @@
-
+{
+  "name": "ip-logger",
+  "version": "1.0.0",
+  "desription": "An ip logger for my purposes(which i wont reveal)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js", 
+    "dev": "nodemon server.js",
+  },
+  "author": "You don't want to know who i am",
+  "license": "MIT", 
+  "dependancies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "express-basic-auth": "^1.2.0",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
