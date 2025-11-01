@@ -7,8 +7,8 @@ const PORT = process.env.PORT || 3000;
 
 // ------------------- CONFIG -------------------
 const logFile = path.join(__dirname, 'visitors.log');
-const ADMIN_USER = 'admin';      // change username
-const ADMIN_PASS = 'password';   // change password
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
 // ---------------------------------------------
 
 // Create log file if it doesn't exist
