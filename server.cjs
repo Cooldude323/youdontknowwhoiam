@@ -18,9 +18,10 @@ if (!fs.existsSync(logFile)) {
 
 // Middleware to log every request
 app.use((req, res, next) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  console.log('Detected IP:', ip);             // logs to terminal
-  fs.appendFileSync(logFile, ip + '\n');      // append to file
+  const ipHeader = req.headers['x-forwarded-for'] || '';
+  const ip = ipHeader.split(',')[0].trim() || req.socket.remoteAddress;
+  console.log('Detected IP:', ip);
+  fs.appendFileSync(logFile, ip + '\n');
   next();
 });
 
