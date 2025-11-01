@@ -5,7 +5,43 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Very Scary</title>
   <style>
-    /* Overlay window styles */
+    /* Prevent scrolling and set body to full viewport */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+    }
+
+    /* Permanent flashing GIF overlay */
+    .flash-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2147483647;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      background: transparent;
+    }
+    .flash-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* fills viewport while keeping aspect ratio */
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      display: block;
+      margin: 0;
+    }
+
+    /* Bouncing overlay windows */
     .scare-overlay {
       position: fixed;
       z-index: 2147483648;
@@ -13,11 +49,9 @@
       border-radius: 6px;
       overflow: visible;
       box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-      transform-origin: center;
       opacity: 0;
       transition: transform 220ms ease, opacity 220ms ease;
       pointer-events: auto;
-      will-change: left, top, transform;
     }
     .scare-overlay.visible {
       opacity: 1;
@@ -32,46 +66,6 @@
       pointer-events: none;
       border-radius: 6px;
     }
-
-  
-    */
-    .flash-overlay {
-      position: fixed;
-      z-index: 2147483647; /* above the moving windows */
-      /* make it fill the whole viewport so the central non-moving element appears large */
-      left: 0;
-      top: 0;
-      transform: none;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      border-radius: 0; /* fill corners */
-      pointer-events: none; /* can't be interacted with */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-
-      /* smaller scale compared to previous change */
-      --img-scale: 0.75;      /* smaller zoom so text remains legible */
-      --img-offset-x: -180px; /* nudge left/right to hide unwanted side */
-      --img-offset-y: 500px;  /* nudge up/down to hide unwanted top */
-    }
-    .flash-overlay img {
-      /* Scale the source gif and offset it, so only the desired region shows inside the container. */
-      transform: scale(var(--img-scale));
-      transform-origin: center top;
-      margin-left: var(--img-offset-x);
-      margin-top: var(--img-offset-y);
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-      display: block;
-      /* ensure the image covers the viewport after scaling without being excessively large */
-      min-width: 105%;
-      min-height: 105%;
-    }
-
     .scare-close {
       position: absolute;
       top: 6px;
@@ -86,36 +80,35 @@
       font-size: 18px;
       cursor: pointer;
       z-index: 2;
-      padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      user-select: none;
+      padding: 0;
     }
-    .scare-close:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
-    body { margin: 0; }
+    .scare-close:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
+    }
   </style>
 </head>
 <body>
-
 <script>
 (function () {
   const CONFIG = {
-    gifPath: '/images/gif-with-window.gif', // expects this file at the repo root next to this HTML
-    audioPath: '/audio/assets_idiot (1).mp3', // file name in repo root
-    initialCount: 0, // don't spawn bouncing windows immediately
-    delayedFirstSpawnDelayMs: 4000, // spawn first bouncing window after 8 seconds
-    maxSpeed: 324, // pixels per second max (previously increased 35%)
-    minSpeed: 108, // pixels per second min (previously increased 35%)
+    gifPath: '/images/gif-with-window.gif',
+    audioPath: '/audio/assets_idiot_1.mp3',
+    initialCount: 0,
+    delayedFirstSpawnDelayMs: 4000,
+    maxSpeed: 324,
+    minSpeed: 108,
   };
 
-  let closeEventCount = 0; // global number of close events (1 -> spawn 2, 2 -> spawn 4, ...)
+  let closeEventCount = 0;
   const overlays = new Set();
 
   function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-  function randomSign() { return Math.random() < 0.5 ? -1 : 1; }
 
-  // Create the permanent central flashing cropped GIF
+  /* Permanent flashing GIF with looping audio */
   function createFlash() {
     const el = document.createElement('div');
     el.className = 'flash-overlay';
@@ -124,209 +117,111 @@
     img.src = CONFIG.gifPath;
     img.alt = 'flashing';
 
-    // Non-interactive audio that loops permanently for this flashing element
     const audio = new Audio(CONFIG.audioPath);
     audio.loop = true;
     audio.volume = 1.0;
-    // Try to play; browsers may block autoplay until the user interacts — resume on next interaction
-    const playPromise = audio.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        const resume = () => {
-          audio.play().catch(() => {});
-          window.removeEventListener('pointerdown', resume);
-          window.removeEventListener('keydown', resume);
-        };
-        window.addEventListener('pointerdown', resume, { once: true });
-        window.addEventListener('keydown', resume, { once: true });
-      });
-    }
-
-    // keep reference so we can stop it on unload
+    audio.play().catch(() => {
+      const resume = () => { audio.play().catch(() => {}); window.removeEventListener('pointerdown', resume); window.removeEventListener('keydown', resume); };
+      window.addEventListener('pointerdown', resume, { once: true });
+      window.addEventListener('keydown', resume, { once: true });
+    });
     el._audio = audio;
 
     el.appendChild(img);
     document.body.appendChild(el);
-
-    // do not add to overlays set — this is a permanent non-bouncing element
-
     return el;
   }
 
-  // Create one overlay window at (atX, atY) if provided (page coordinates)
+  /* Bouncing scare windows */
   function createScare(atX, atY) {
     const el = document.createElement('div');
     el.className = 'scare-overlay';
-
-    // Random width for variety
-    const width = 320 + randomInt(0, 160); // 320..480
+    const width = 320 + randomInt(0, 160);
     el.style.width = width + 'px';
-
-    // Position
-    const x = (typeof atX === 'number') ? atX : Math.max(10, randomInt(10, Math.max(10, window.innerWidth - width - 10)));
-    const y = (typeof atY === 'number') ? atY : Math.max(10, randomInt(10, Math.max(10, window.innerHeight - 240)));
+    const x = (typeof atX === 'number') ? atX : Math.max(10, randomInt(10, window.innerWidth - width - 10));
+    const y = (typeof atY === 'number') ? atY : Math.max(10, randomInt(10, window.innerHeight - 240));
     el.style.left = x + 'px';
     el.style.top = y + 'px';
-
-    // Random velocity
-    const speed = CONFIG.minSpeed + Math.random() * (CONFIG.maxSpeed - CONFIG.minSpeed); // px/sec
+    const speed = CONFIG.minSpeed + Math.random() * (CONFIG.maxSpeed - CONFIG.minSpeed);
     const angle = Math.random() * Math.PI * 2;
-    el._vx = Math.cos(angle) * speed; // pixels per second
+    el._vx = Math.cos(angle) * speed;
     el._vy = Math.sin(angle) * speed;
 
-    // Image element
     const img = document.createElement('img');
     img.src = CONFIG.gifPath;
     img.alt = 'scary';
     img.className = 'scare-img';
     img.draggable = false;
 
-    // Close button (inside the overlay so it moves with it)
     const btn = document.createElement('button');
     btn.className = 'scare-close';
     btn.innerText = '×';
     btn.title = 'Close';
 
-    // Audio for this window (separate instance so sounds stack)
     const audio = new Audio(CONFIG.audioPath);
     audio.loop = true;
-    audio.volume = 1.0; // max volume
-    // Try to play; browsers may block autoplay until user interacts
-    const playPromise = audio.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        const resume = () => {
-          audio.play().catch(() => {});
-          window.removeEventListener('pointerdown', resume);
-          window.removeEventListener('keydown', resume);
-        };
-        window.addEventListener('pointerdown', resume, { once: true });
-        window.addEventListener('keydown', resume, { once: true });
-      });
-    }
-
-    // Store audio on element for cleanup
+    audio.volume = 1.0;
+    audio.play().catch(() => {
+      const resume = () => { audio.play().catch(() => {}); window.removeEventListener('pointerdown', resume); window.removeEventListener('keydown', resume); };
+      window.addEventListener('pointerdown', resume, { once: true });
+      window.addEventListener('keydown', resume, { once: true });
+    });
     el._audio = audio;
 
-    btn.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      closeScare(el);
-    });
-
-    // Clicking elsewhere on the overlay also closes it
-    el.addEventListener('click', function (ev) {
-      if (ev.target === btn) return;
-      btn.click();
-    });
+    btn.addEventListener('click', ev => { ev.stopPropagation(); closeScare(el); });
+    el.addEventListener('click', ev => { if(ev.target!==btn) btn.click(); });
 
     el.appendChild(btn);
     el.appendChild(img);
     document.body.appendChild(el);
-
-    // add to overlays set so the animation loop knows about it
     overlays.add(el);
-
-    // Slight pop-in animation
     requestAnimationFrame(() => el.classList.add('visible'));
-
     return el;
   }
 
   function closeScare(el) {
-    // stop and remove audio
-    try {
-      if (el._audio) {
-        el._audio.pause();
-        el._audio.src = '';
-        el._audio = null;
-      }
-    } catch (e) {}
-
-    // remove from DOM and overlays set
-    if (el && el.parentNode) el.parentNode.removeChild(el);
+    if(el._audio){ el._audio.pause(); el._audio.src=''; el._audio=null; }
+    if(el.parentNode) el.parentNode.removeChild(el);
     overlays.delete(el);
-
-    // increment global close counter and spawn new windows in multiples of 2
-    closeEventCount += 1;
-    const toSpawn = closeEventCount * 2; // 1->2, 2->4, 3->6, ...
-
-    for (let i = 0; i < toSpawn; i++) {
-      // spawn near the original location if possible, otherwise random
-      const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-      const spawnX = rect ? (rect.left + rect.width / 2 + randomInt(-60, 60)) : undefined;
-      const spawnY = rect ? (rect.top + rect.height / 2 + randomInt(-60, 60)) : undefined;
-      // stagger creation slightly so audio stacks more naturally
-      setTimeout(() => createScare(spawnX, spawnY), 20 * i + randomInt(0, 160));
+    closeEventCount++;
+    const toSpawn = closeEventCount*2;
+    for(let i=0;i<toSpawn;i++){
+      const rect = el.getBoundingClientRect? el.getBoundingClientRect():null;
+      const spawnX = rect? rect.left + rect.width/2 + randomInt(-60,60) : undefined;
+      const spawnY = rect? rect.top + rect.height/2 + randomInt(-60,60) : undefined;
+      setTimeout(()=>createScare(spawnX,spawnY),20*i+randomInt(0,160));
     }
   }
 
-  // Animation loop: move overlays by their velocity and bounce off viewport edges
+  /* Animation loop */
   let lastTs = performance.now();
-  function tick(ts) {
-    const dt = Math.min(0.05, (ts - lastTs) / 1000); // clamp dt to avoid huge jumps (seconds)
-    lastTs = ts;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    overlays.forEach(el => {
-      // parse current position
-      const left = parseFloat(el.style.left) || 0;
-      const top = parseFloat(el.style.top) || 0;
-      const width = el.offsetWidth || 320;
-      const height = el.offsetHeight || 200;
-
-      let nx = left + el._vx * dt;
-      let ny = top + el._vy * dt;
-
-      // bounce on left/right
-      if (nx <= 0) {
-        nx = 0;
-        el._vx = Math.abs(el._vx);
-      } else if (nx + width >= vw) {
-        nx = Math.max(0, vw - width);
-        el._vx = -Math.abs(el._vx);
-      }
-
-      // bounce on top/bottom
-      if (ny <= 0) {
-        ny = 0;
-        el._vy = Math.abs(el._vy);
-      } else if (ny + height >= vh) {
-        ny = Math.max(0, vh - height);
-        el._vy = -Math.abs(el._vy);
-      }
-
-      el.style.left = nx + 'px';
-      el.style.top = ny + 'px';
+  function tick(ts){
+    const dt=Math.min(0.05,(ts-lastTs)/1000);
+    lastTs=ts;
+    const vw=window.innerWidth, vh=window.innerHeight;
+    overlays.forEach(el=>{
+      let nx=parseFloat(el.style.left)||0, ny=parseFloat(el.style.top)||0;
+      const w=el.offsetWidth||320, h=el.offsetHeight||200;
+      nx+=el._vx*dt; ny+=el._vy*dt;
+      if(nx<=0){ nx=0; el._vx=Math.abs(el._vx); } 
+      else if(nx+w>=vw){ nx=vw-w; el._vx=-Math.abs(el._vx); }
+      if(ny<=0){ ny=0; el._vy=Math.abs(el._vy); } 
+      else if(ny+h>=vh){ ny=vh-h; el._vy=-Math.abs(el._vy); }
+      el.style.left=nx+'px'; el.style.top=ny+'px';
     });
-
     requestAnimationFrame(tick);
   }
 
-  // Clean up overlays on page unload
-  window.addEventListener('beforeunload', () => {
-    overlays.forEach(el => {
-      try { if (el._audio) { el._audio.pause(); el._audio.src = ''; } } catch (e) {}
-    });
+  window.addEventListener('beforeunload', ()=>{
+    overlays.forEach(el=>{ try{ if(el._audio){el._audio.pause();el._audio.src='';} }catch(e){} });
   });
 
-  // Initialize
-  window.addEventListener('DOMContentLoaded', () => {
-    // create the permanent flashing element immediately
+  window.addEventListener('DOMContentLoaded',()=>{
     createFlash();
-
-    // start animation loop
     requestAnimationFrame(tick);
-
-    // spawn initial bouncing windows after the configured delay
-    setTimeout(() => {
-      // spawn one bouncing window to start the bouncing behavior
-      createScare();
-    }, CONFIG.delayedFirstSpawnDelayMs);
+    setTimeout(()=>createScare(),CONFIG.delayedFirstSpawnDelayMs);
   });
 })();
 </script>
-
 </body>
 </html>
