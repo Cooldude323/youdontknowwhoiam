@@ -1,22 +1,16 @@
-// server.cjs
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ------------------- CONFIG -------------------
+// Serve all static files in 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Visitor logging middleware
 const logFile = path.join(__dirname, 'visitors.log');
-const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
-// ---------------------------------------------
+if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, '', 'utf8');
 
-// Create log file if it doesn't exist
-if (!fs.existsSync(logFile)) {
-  fs.writeFileSync(logFile, '', 'utf8');
-}
-
-// Middleware to log every request
 app.use((req, res, next) => {
   const ipHeader = req.headers['x-forwarded-for'] || '';
   const ip = ipHeader.split(',')[0].trim() || req.socket.remoteAddress;
@@ -25,19 +19,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve index.html at root
+// Serve main index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Simple login page to view logs
+// Admin logs page
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
+
 app.get('/logs', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) {
     res.setHeader('WWW-Authenticate', 'Basic realm="IP Logs"');
     return res.status(401).send('Authentication required.');
   }
-
   const [user, pass] = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
   if (user === ADMIN_USER && pass === ADMIN_PASS) {
     const logs = fs.readFileSync(logFile, 'utf8');
@@ -48,8 +44,4 @@ app.get('/logs', (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
